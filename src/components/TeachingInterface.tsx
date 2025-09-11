@@ -6,6 +6,10 @@ import { Mic, MicOff, Volume2, Users, BookOpen } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { ChatMessage } from '@/components/ChatMessage';
 import { TranscriptDisplay } from '@/components/TranscriptDisplay';
+import { VideoControls } from '@/components/VideoControls';
+import { StudentGrid } from '@/components/StudentGrid';
+import { ChapterSelector } from '@/components/ChapterSelector';
+import { ClearConversation } from '@/components/ClearConversation';
 import { StudentSimulator } from '@/utils/studentSimulator';
 
 export interface Message {
@@ -14,12 +18,22 @@ export interface Message {
   content: string;
   timestamp: Date;
   studentName?: string;
+  avatar?: string;
+  voiceType?: string;
+}
+
+interface Student {
+  name: string;
+  avatar: string;
+  isActive: boolean;
+  lastSpoke?: Date;
+  subject_preference: string;
 }
 
 const subjects = [
-  { value: 'physics', label: 'Physics' },
-  { value: 'chemistry', label: 'Chemistry' },
-  { value: 'mathematics', label: 'Mathematics' }
+  { value: 'physics', label: 'Physics', icon: '⚡' },
+  { value: 'chemistry', label: 'Chemistry', icon: '🧪' },
+  { value: 'mathematics', label: 'Mathematics', icon: '📊' }
 ];
 
 export const TeachingInterface: React.FC = () => {
@@ -27,8 +41,11 @@ export const TeachingInterface: React.FC = () => {
   const [currentTranscript, setCurrentTranscript] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [selectedSubject, setSelectedSubject] = useState<string>('physics');
+  const [selectedChapter, setSelectedChapter] = useState<string>('mechanics');
   const [recognition, setRecognition] = useState<SpeechRecognition | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [activeStudents, setActiveStudents] = useState<Student[]>([]);
+  const [currentSpeaker, setCurrentSpeaker] = useState<string>('');
   
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -43,7 +60,21 @@ export const TeachingInterface: React.FC = () => {
       rec.continuous = true;
       rec.interimResults = true;
       rec.lang = 'en-US';
-      
+  
+  // Initialize active students
+  useEffect(() => {
+    const students: Student[] = [
+      { name: 'Priya', avatar: '👩‍🎓', isActive: true, subject_preference: 'mathematics' },
+      { name: 'Arjun', avatar: '👨‍🎓', isActive: true, subject_preference: 'physics' },
+      { name: 'Sneha', avatar: '👩‍💻', isActive: true, subject_preference: 'chemistry' },
+      { name: 'Rohit', avatar: '👨‍💻', isActive: true, subject_preference: 'mathematics' },
+      { name: 'Ananya', avatar: '👩‍🔬', isActive: true, subject_preference: 'physics' },
+      { name: 'Karthik', avatar: '👨‍🔬', isActive: true, subject_preference: 'chemistry' },
+      { name: 'Divya', avatar: '👩‍🏫', isActive: true, subject_preference: 'mathematics' },
+      { name: 'Varun', avatar: '👨‍🎯', isActive: true, subject_preference: 'physics' }
+    ];
+    setActiveStudents(students);
+  }, []);
       rec.onresult = (event) => {
         let interimTranscript = '';
         let finalTranscript = '';
@@ -135,18 +166,34 @@ export const TeachingInterface: React.FC = () => {
       // Add student messages with delays for natural conversation flow
       for (let i = 0; i < studentResponses.length; i++) {
         setTimeout(() => {
+          const response = studentResponses[i];
           const studentMessage: Message = {
             id: `student-${Date.now()}-${i}`,
             type: 'student',
-            content: studentResponses[i].content,
+            content: response.content,
             timestamp: new Date(),
-            studentName: studentResponses[i].studentName
+            studentName: response.studentName,
+            avatar: response.avatar,
+            voiceType: response.voiceType
           };
           
           setMessages(prev => [...prev, studentMessage]);
           
+          // Update student activity
+          setActiveStudents(prev => prev.map(student => 
+            student.name === response.studentName 
+              ? { ...student, lastSpoke: new Date() }
+              : student
+          ));
+          
+          // Set current speaker
+          setCurrentSpeaker(response.studentName);
+          
           // Text-to-speech for student response
-          speakText(studentResponses[i].content, studentResponses[i].studentName);
+          speakText(response.content, response.studentName, response.voiceType);
+          
+          // Clear current speaker after speaking
+          setTimeout(() => setCurrentSpeaker(''), 3000);
         }, (i + 1) * 2000); // 2 second delay between responses
       }
     } catch (error) {
@@ -162,33 +209,84 @@ export const TeachingInterface: React.FC = () => {
     }
   };
 
-  const speakText = (text: string, studentName: string) => {
+  const speakText = (text: string, studentName: string, voiceType: string) => {
     if ('speechSynthesis' in window) {
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.rate = 0.9;
       utterance.pitch = 1;
       utterance.volume = 0.8;
       
-      // Try to use a different voice for each student
+      // Enhanced voice selection based on voiceType
       const voices = speechSynthesis.getVoices();
       if (voices.length > 0) {
-        const femaleVoices = voices.filter(voice => 
-          voice.name.toLowerCase().includes('female') || 
-          voice.name.toLowerCase().includes('zira') ||
-          voice.name.toLowerCase().includes('susan')
-        );
-        const maleVoices = voices.filter(voice => 
-          voice.name.toLowerCase().includes('male') || 
-          voice.name.toLowerCase().includes('david') ||
-          voice.name.toLowerCase().includes('mark')
-        );
+        let selectedVoice = null;
         
-        if (studentName === 'Priya' && femaleVoices.length > 0) {
-          utterance.voice = femaleVoices[0];
-        } else if (studentName === 'Arjun' && maleVoices.length > 0) {
-          utterance.voice = maleVoices[0];
-        } else if (voices.length > 1) {
-          utterance.voice = voices[1];
+        // Voice mapping based on voiceType
+        switch (voiceType) {
+          case 'female-high':
+            selectedVoice = voices.find(voice => 
+              voice.name.toLowerCase().includes('female') || 
+              voice.name.toLowerCase().includes('zira') ||
+              voice.name.toLowerCase().includes('susan')
+            );
+            utterance.pitch = 1.2;
+            break;
+          case 'male-deep':
+            selectedVoice = voices.find(voice => 
+              voice.name.toLowerCase().includes('male') || 
+              voice.name.toLowerCase().includes('david') ||
+              voice.name.toLowerCase().includes('mark')
+            );
+            utterance.pitch = 0.8;
+            break;
+          case 'female-medium':
+            selectedVoice = voices.find(voice => 
+              voice.name.toLowerCase().includes('female') || 
+              voice.name.toLowerCase().includes('hazel')
+            );
+            utterance.pitch = 1.0;
+            break;
+          case 'male-medium':
+            selectedVoice = voices.find(voice => 
+              voice.name.toLowerCase().includes('male') && 
+              !voice.name.toLowerCase().includes('deep')
+            );
+            utterance.pitch = 0.9;
+            break;
+          case 'female-soft':
+            selectedVoice = voices.find(voice => 
+              voice.name.toLowerCase().includes('female')
+            );
+            utterance.rate = 0.8;
+            utterance.pitch = 1.1;
+            break;
+          case 'male-energetic':
+            selectedVoice = voices.find(voice => 
+              voice.name.toLowerCase().includes('male')
+            );
+            utterance.rate = 1.1;
+            utterance.pitch = 1.0;
+            break;
+          case 'female-calm':
+            selectedVoice = voices.find(voice => 
+              voice.name.toLowerCase().includes('female')
+            );
+            utterance.rate = 0.7;
+            utterance.pitch = 0.9;
+            break;
+          case 'male-quick':
+            selectedVoice = voices.find(voice => 
+              voice.name.toLowerCase().includes('male')
+            );
+            utterance.rate = 1.2;
+            utterance.pitch = 1.1;
+            break;
+          default:
+            selectedVoice = voices[Math.floor(Math.random() * Math.min(voices.length, 4))];
+        }
+        
+        if (selectedVoice) {
+          utterance.voice = selectedVoice;
         }
       }
       
@@ -216,95 +314,64 @@ export const TeachingInterface: React.FC = () => {
                 <BookOpen className="h-6 w-6 text-primary-foreground" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-foreground">JEE Teaching Assistant</h1>
-                <p className="text-muted-foreground">Teach with AI students who ask questions and engage</p>
+                <h1 className="text-3xl font-bold text-foreground">JEE Virtual Classroom</h1>
+                <p className="text-muted-foreground">Teach with AI students in an immersive Zoom-like experience</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
               <Users className="h-5 w-5 text-primary" />
-              <span className="text-sm font-medium text-foreground">2 AI Students Online</span>
+              <span className="text-sm font-medium text-foreground">{activeStudents.length} AI Students Online</span>
             </div>
-          </div>
-          
-          {/* Subject Selection */}
-          <div className="flex items-center gap-4">
-            <label className="text-sm font-medium text-foreground">Subject:</label>
-            <Select value={selectedSubject} onValueChange={setSelectedSubject}>
-              <SelectTrigger className="w-48">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {subjects.map(subject => (
-                  <SelectItem key={subject.value} value={subject.value}>
-                    {subject.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Teaching Controls & Transcript */}
-          <div className="lg:col-span-1 space-y-6">
-            {/* Recording Controls */}
-            <Card className="p-6 shadow-teaching">
-              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <Mic className="h-5 w-5" />
-                Teaching Controls
-              </h3>
-              
-              <div className="space-y-4">
-                <Button
-                  onClick={isRecording ? stopRecording : startRecording}
-                  disabled={isProcessing}
-                  className={`w-full h-12 text-lg font-medium transition-smooth ${
-                    isRecording 
-                      ? 'bg-destructive hover:bg-destructive/90 text-destructive-foreground' 
-                      : 'bg-gradient-primary hover:opacity-90 text-primary-foreground'
-                  }`}
-                >
-                  {isRecording ? (
-                    <>
-                      <MicOff className="h-5 w-5 mr-2" />
-                      Stop & Send
-                    </>
-                  ) : (
-                    <>
-                      <Mic className="h-5 w-5 mr-2" />
-                      Start Teaching
-                    </>
-                  )}
-                </Button>
-                
-                {isProcessing && (
-                  <div className="flex items-center justify-center text-sm text-muted-foreground">
-                    <div className="animate-pulse mr-2">●</div>
-                    AI students are thinking...
-                  </div>
-                )}
-                
-                <Button 
-                  variant="outline" 
-                  onClick={clearConversation}
-                  className="w-full"
-                  disabled={isRecording || isProcessing}
-                >
-                  Clear Conversation
-                </Button>
-              </div>
-            </Card>
-
-            {/* Live Transcript */}
-            <TranscriptDisplay 
-              transcript={currentTranscript}
-              isRecording={isRecording}
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+          {/* Left Sidebar - Chapter Selection */}
+          <div className="xl:col-span-1 space-y-6">
+            <ChapterSelector
+              selectedSubject={selectedSubject}
+              selectedChapter={selectedChapter}
+              onSubjectChange={setSelectedSubject}
+              onChapterChange={setSelectedChapter}
             />
           </div>
 
-          {/* Chat Interface */}
-          <div className="lg:col-span-2">
-            <Card className="h-[600px] flex flex-col shadow-medium">
+          {/* Main Content Area */}
+          <div className="xl:col-span-3 space-y-6">
+            {/* Video Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Teacher Video */}
+              <div className="lg:col-span-1">
+                <VideoControls
+                  isRecording={isRecording}
+                  onStartRecording={startRecording}
+                  onStopRecording={stopRecording}
+                  isProcessing={isProcessing}
+                />
+              </div>
+
+              {/* Live Transcript */}
+              <div className="lg:col-span-2">
+                <TranscriptDisplay 
+                  transcript={currentTranscript}
+                  isRecording={isRecording}
+                />
+              </div>
+            </div>
+
+            {/* Student Grid */}
+            <Card className="p-6 shadow-medium">
+              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                AI Students
+              </h3>
+              <StudentGrid 
+                activeStudents={activeStudents}
+                currentSpeaker={currentSpeaker}
+              />
+            </Card>
+            {/* Chat Interface */}
+            <Card className="h-[400px] flex flex-col shadow-medium">
               <div className="p-4 border-b border-border bg-teacher-bg">
                 <h3 className="text-lg font-semibold flex items-center gap-2">
                   <Volume2 className="h-5 w-5" />
@@ -337,6 +404,12 @@ export const TeachingInterface: React.FC = () => {
                 )}
               </div>
             </Card>
+            
+            {/* Clear Conversation */}
+            <ClearConversation
+              onClear={clearConversation}
+              disabled={isRecording || isProcessing}
+            />
           </div>
         </div>
       </div>

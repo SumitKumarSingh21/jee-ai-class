@@ -73,7 +73,10 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
           <span className="text-xs text-muted-foreground">{formatTime(message.timestamp)}</span>
         </div>
         <Card className="p-3 bg-student-bg border-l-4 border-l-secondary">
-          <p className="text-foreground leading-relaxed">{message.content}</p>
+          <div className="flex items-start gap-2">
+            <span className="text-xl">{message.avatar}</span>
+            <p className="text-foreground leading-relaxed flex-1">{message.content}</p>
+          </div>
         </Card>
       </div>
     </div>
