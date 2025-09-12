@@ -21,61 +21,85 @@ export class StudentSimulator {
   constructor() {
     this.curriculum = {
       physics: {
+        general: {
+          topics: ['Units and Dimensions', 'Physical Quantities', 'SI Units', 'Measurement of error', 'Significant figures', 'Error analysis', 'Experiments'],
+          concepts: ['unit', 'dimension', 'error', 'significant figures', 'measurement', 'precision', 'accuracy']
+        },
         mechanics: {
-          topics: ['Motion in One Dimension', 'Motion in Two Dimensions', 'Laws of Motion', 'Work Energy Power', 'Circular Motion', 'Rotational Motion', 'Gravitation', 'Simple Harmonic Motion'],
-          concepts: ['displacement', 'velocity', 'acceleration', 'force', 'momentum', 'energy', 'angular velocity', 'torque', 'gravity']
+          topics: ['Kinematics (1D and 2D motion, projectiles)', 'Laws of Motion (Newton\'s laws, friction, circular motion)', 'Work, Energy and Power', 'System of Particles and Rotational Motion', 'Centre of mass, motion of COM', 'Torque, Angular momentum', 'Rigid body dynamics, Moment of inertia, Rolling motion', 'Gravitation (Newton\'s law, satellites, escape velocity, orbital velocity, Kepler\'s laws)'],
+          concepts: ['displacement', 'velocity', 'acceleration', 'force', 'momentum', 'energy', 'angular velocity', 'torque', 'gravity', 'friction', 'projectile', 'circular motion', 'work', 'power', 'moment of inertia', 'centre of mass', 'escape velocity', 'orbital velocity']
         },
-        thermodynamics: {
-          topics: ['Kinetic Theory of Gases', 'First Law of Thermodynamics', 'Second Law of Thermodynamics', 'Heat Engines', 'Entropy'],
-          concepts: ['temperature', 'heat', 'internal energy', 'efficiency', 'entropy', 'ideal gas', 'PV diagrams']
+        properties_matter_thermodynamics: {
+          topics: ['Mechanical Properties of Solids (stress, strain, elastic modulus, Hooke\'s law)', 'Mechanical Properties of Fluids (pressure, Pascal\'s law, Archimedes\' principle, viscosity, surface tension)', 'Thermal Properties of Matter (heat transfer, calorimetry, expansion of solids/liquids/gases)', 'Thermodynamics (first law, second law, entropy, heat engines)', 'Kinetic Theory of Gases (equipartition, RMS velocity, mean free path)'],
+          concepts: ['stress', 'strain', 'elasticity', 'pressure', 'buoyancy', 'viscosity', 'surface tension', 'heat', 'temperature', 'thermal expansion', 'entropy', 'heat engine', 'kinetic theory', 'ideal gas', 'PV diagram']
         },
-        electromagnetism: {
-          topics: ['Electric Charges and Fields', 'Electric Potential', 'Capacitance', 'Current Electricity', 'Magnetic Fields', 'Electromagnetic Induction', 'AC Circuits'],
-          concepts: ['electric field', 'potential', 'current', 'resistance', 'magnetic field', 'flux', 'impedance']
+        oscillations_waves: {
+          topics: ['Simple Harmonic Motion (equations, energy, superposition)', 'Damped and Forced oscillations, Resonance', 'Waves (sound waves, Doppler effect, beats, standing waves, organ pipes)'],
+          concepts: ['oscillation', 'frequency', 'amplitude', 'phase', 'resonance', 'wave', 'wavelength', 'doppler effect', 'interference', 'beats', 'standing wave']
         },
-        waves_and_optics: {
-          topics: ['Wave Motion', 'Sound Waves', 'Light Waves', 'Interference', 'Diffraction', 'Polarization'],
-          concepts: ['wavelength', 'frequency', 'amplitude', 'interference', 'diffraction', 'polarization']
+        electrostatics_current: {
+          topics: ['Electrostatics (Coulomb\'s law, electric field, potential, Gauss law, capacitors)', 'Current Electricity (Ohm\'s law, Kirchhoff\'s laws, cells, resistivity, Wheatstone bridge, potentiometer)'],
+          concepts: ['electric charge', 'electric field', 'electric potential', 'capacitance', 'current', 'resistance', 'voltage', 'power', 'circuit', 'ohm law', 'kirchhoff law']
+        },
+        magnetism_induction: {
+          topics: ['Magnetic Effects of Current (Biot–Savart law, Ampere\'s law)', 'Earth\'s magnetism, Magnetic materials', 'Moving charges in magnetic fields (Lorentz force, cyclotron)', 'Electromagnetic Induction (Faraday\'s law, Lenz\'s law, self and mutual inductance)', 'Alternating Current (LCR circuits, resonance, transformers)'],
+          concepts: ['magnetic field', 'magnetic force', 'electromagnetic induction', 'flux', 'inductance', 'AC', 'transformer', 'resonance', 'impedance', 'lorentz force']
+        },
+        electromagnetic_waves: {
+          topics: ['Displacement current, Maxwell\'s equations (qualitative)', 'EM spectrum'],
+          concepts: ['electromagnetic wave', 'maxwell equations', 'electromagnetic spectrum', 'radio waves', 'microwaves', 'infrared', 'visible light', 'ultraviolet', 'x-rays', 'gamma rays']
+        },
+        optics: {
+          topics: ['Ray Optics (reflection, refraction, lenses, mirrors, optical instruments, total internal reflection)', 'Wave Optics (interference, diffraction, polarisation, Young\'s double-slit experiment)'],
+          concepts: ['reflection', 'refraction', 'lens', 'mirror', 'focal length', 'magnification', 'interference', 'diffraction', 'polarization', 'coherence']
         },
         modern_physics: {
-          topics: ['Dual Nature of Matter', 'Atoms and Nuclei', 'Electronic Devices'],
-          concepts: ['photon', 'electron', 'nucleus', 'radioactivity', 'wave-particle duality', 'semiconductors']
+          topics: ['Dual Nature of Matter and Radiation (photoelectric effect, de Broglie wavelength)', 'Atoms (Bohr model, hydrogen spectrum)', 'Nuclei (radioactivity, nuclear reactions, mass defect, binding energy)', 'Semiconductor Electronics (diodes, transistors, logic gates)', 'Communication Systems (JEE Main only, not in Advanced)'],
+          concepts: ['photon', 'electron', 'photoelectric effect', 'de broglie wavelength', 'bohr model', 'hydrogen spectrum', 'nucleus', 'radioactivity', 'nuclear reaction', 'semiconductor', 'diode', 'transistor']
         }
       },
       chemistry: {
         physical_chemistry: {
-          topics: ['Atomic Structure', 'Chemical Bonding', 'Gaseous State', 'Thermodynamics', 'Chemical Equilibrium', 'Ionic Equilibrium', 'Electrochemistry', 'Chemical Kinetics', 'Surface Chemistry'],
-          concepts: ['orbital', 'electron configuration', 'bond', 'enthalpy', 'entropy', 'equilibrium constant', 'pH', 'electrode potential']
-        },
-        organic_chemistry: {
-          topics: ['Basic Principles', 'Hydrocarbons', 'Haloalkanes and Haloarenes', 'Alcohols Phenols Ethers', 'Aldehydes Ketones Carboxylic Acids', 'Nitrogen Compounds', 'Biomolecules', 'Polymers'],
-          concepts: ['alkane', 'alkene', 'benzene', 'alcohol', 'carbonyl', 'chirality', 'isomerism', 'functional groups']
+          topics: ['Some Basic Concepts of Chemistry (mole concept, stoichiometry, empirical formula)', 'Atomic Structure (Bohr model, quantum numbers, electronic configuration)', 'Chemical Bonding and Molecular Structure (VSEPR, hybridisation, MOT, bond energy)', 'States of Matter (ideal gas, real gas, liquefaction, kinetic theory of gases)', 'Chemical Thermodynamics (first, second laws, Gibbs free energy, spontaneity)', 'Solutions (Raoult\'s law, colligative properties, Henry\'s law)', 'Equilibrium (chemical equilibrium, ionic equilibrium, solubility product, buffer)', 'Redox Reactions and Electrochemistry (Nernst equation, galvanic cells, electrolytic cells)', 'Chemical Kinetics (order, molecularity, Arrhenius equation, rate laws)', 'Surface Chemistry (adsorption, catalysis, colloids)'],
+          concepts: ['mole', 'stoichiometry', 'atomic structure', 'quantum numbers', 'orbital', 'bond', 'hybridization', 'gas laws', 'enthalpy', 'entropy', 'gibbs energy', 'equilibrium', 'pH', 'buffer', 'redox', 'electrochemistry', 'kinetics', 'catalyst', 'adsorption']
         },
         inorganic_chemistry: {
-          topics: ['Classification of Elements', 'Hydrogen', 'S-Block Elements', 'P-Block Elements', 'D-Block and F-Block Elements', 'Coordination Compounds', 'Environmental Chemistry'],
-          concepts: ['periodic trends', 'coordination number', 'ligand', 'oxidation state', 'extraction', 'crystal field theory']
+          topics: ['Periodic Table & Periodicity in Properties', 'Hydrogen and its Compounds', 's-Block Element (alkali and alkaline earth metals)', 'p-Block Elements (Groups 13–18, including oxides, halides, allotropes)', 'd-Block Elements (transition metals, their compounds, color, catalytic properties)', 'f-Block Elements (lanthanides, actinides)', 'Coordination Compounds (VBT, CFT, isomerism, stability)', 'Environmental Chemistry', 'General Principles & Processes of Isolation of Metals'],
+          concepts: ['periodic table', 'periodicity', 'alkali metals', 'alkaline earth metals', 'halogens', 'noble gases', 'transition metals', 'lanthanides', 'actinides', 'coordination compound', 'ligand', 'crystal field theory', 'metallurgy']
+        },
+        organic_chemistry: {
+          topics: ['General Organic Chemistry (GOC) — nomenclature, hybridisation, resonance, inductive effect, mesomeric effect, hyperconjugation', 'Isomerism (structural, geometrical, optical, conformational)', 'Hydrocarbons: Alkanes, Alkenes, Alkynes (preparation, properties, reactions)', 'Aromatic Compounds (benzene, electrophilic substitution, Huckel\'s rule)', 'Organic Compounds with Functional Groups: Alcohols, Phenols, Ethers', 'Aldehydes, Ketones, Carboxylic Acids and Derivatives', 'Amines and Diazonium salts', 'Haloalkanes and Haloarenes', 'Polymers (addition, condensation, copolymers, natural & synthetic polymers)', 'Biomolecules (proteins, carbohydrates, nucleic acids, vitamins)', 'Chemistry in Everyday Life (drugs, soaps, detergents, dyes)'],
+          concepts: ['organic chemistry', 'nomenclature', 'isomerism', 'alkane', 'alkene', 'alkyne', 'aromatic', 'benzene', 'functional group', 'alcohol', 'aldehyde', 'ketone', 'carboxylic acid', 'amine', 'polymer', 'protein', 'carbohydrate', 'DNA', 'RNA']
         }
       },
       mathematics: {
         algebra: {
-          topics: ['Sets Relations Functions', 'Complex Numbers', 'Quadratic Equations', 'Sequences and Series', 'Permutations and Combinations', 'Binomial Theorem', 'Mathematical Induction'],
-          concepts: ['set theory', 'imaginary unit', 'discriminant', 'arithmetic progression', 'geometric progression', 'factorial', 'combinations']
-        },
-        calculus: {
-          topics: ['Limits and Derivatives', 'Applications of Derivatives', 'Integrals', 'Applications of Integrals', 'Differential Equations'],
-          concepts: ['limit', 'continuity', 'derivative', 'integration', 'area under curve', 'differential equation', 'maxima minima']
-        },
-        coordinate_geometry: {
-          topics: ['Straight Lines', 'Circles', 'Parabola', 'Ellipse', 'Hyperbola', 'Three Dimensional Geometry'],
-          concepts: ['slope', 'equation of line', 'radius', 'focus', 'directrix', 'eccentricity', 'direction cosines']
+          topics: ['Sets, Relations, Functions', 'Complex Numbers (properties, De Moivre\'s theorem, quadratic equations)', 'Matrices and Determinants', 'Permutations and Combinations', 'Binomial Theorem and Applications', 'Sequences and Series (AP, GP, HP, special series, sums of squares/cubes)', 'Mathematical Induction', 'Logarithms'],
+          concepts: ['set', 'relation', 'function', 'complex number', 'matrix', 'determinant', 'permutation', 'combination', 'binomial theorem', 'sequence', 'series', 'arithmetic progression', 'geometric progression', 'induction', 'logarithm']
         },
         trigonometry: {
-          topics: ['Trigonometric Functions', 'Inverse Trigonometric Functions', 'Trigonometric Equations', 'Properties of Triangles'],
-          concepts: ['sine', 'cosine', 'tangent', 'radian', 'identity', 'period', 'amplitude', 'law of sines']
+          topics: ['Trigonometric Ratios and Identities', 'Trigonometric Equations', 'Inverse Trigonometric Functions', 'Properties of Triangles', 'Heights and Distances'],
+          concepts: ['sine', 'cosine', 'tangent', 'trigonometric identity', 'trigonometric equation', 'inverse trigonometric function', 'triangle', 'height', 'distance', 'angle of elevation', 'angle of depression']
         },
-        probability_and_statistics: {
-          topics: ['Probability', 'Random Variables', 'Distributions', 'Statistics'],
-          concepts: ['sample space', 'probability', 'expectation', 'variance', 'normal distribution', 'mean', 'median']
+        calculus: {
+          topics: ['Limits, Continuity, Differentiability', 'Differentiation and Applications (tangents, normals, maxima/minima, monotonicity, Rolle\'s theorem, Mean Value Theorem)', 'Indefinite Integrals (methods of integration)', 'Definite Integrals (properties, applications, area under curves)', 'Differential Equations (formation, first order and first degree, linear DE, separation of variables)'],
+          concepts: ['limit', 'continuity', 'derivative', 'differentiation', 'integration', 'maxima', 'minima', 'tangent', 'normal', 'area under curve', 'differential equation']
+        },
+        coordinate_geometry: {
+          topics: ['Straight Lines, Circles, Parabola, Ellipse, Hyperbola', 'Conic Sections in general', '3D Geometry: direction cosines, equations of line and plane, distance formula, angle between lines/planes'],
+          concepts: ['coordinate', 'straight line', 'circle', 'parabola', 'ellipse', 'hyperbola', 'conic section', 'distance formula', 'direction cosine', 'equation of plane']
+        },
+        vector_algebra: {
+          topics: ['Addition, scalar product, vector product, scalar triple product'],
+          concepts: ['vector', 'scalar product', 'dot product', 'vector product', 'cross product', 'scalar triple product']
+        },
+        probability_statistics: {
+          topics: ['Probability (conditional probability, Bayes\' theorem, binomial distribution)', 'Statistics (mean, median, mode, variance, standard deviation)'],
+          concepts: ['probability', 'conditional probability', 'bayes theorem', 'binomial distribution', 'mean', 'median', 'mode', 'variance', 'standard deviation']
+        },
+        mathematical_reasoning: {
+          topics: ['Statements, logical connectives, truth tables, implications, validity'],
+          concepts: ['statement', 'logical connective', 'truth table', 'implication', 'validity', 'negation', 'conjunction', 'disjunction']
         }
       }
     };
@@ -151,15 +175,32 @@ export class StudentSimulator {
   public async generateResponses(teacherInput: string, subject: string): Promise<StudentResponse[]> {
     const responses: StudentResponse[] = [];
     
+    // Filter out simple greetings and basic acknowledgments to avoid unnecessary questions
+    const inputLower = teacherInput.toLowerCase().trim();
+    const basicGreetings = ['hello', 'hi', 'good morning', 'good afternoon', 'good evening', 'welcome', 'let me', 'las', 'okay', 'ok', 'yes', 'no', 'right', 'correct'];
+    const isBasicInteraction = basicGreetings.some(greeting => 
+      inputLower === greeting || inputLower.includes(greeting) && inputLower.length < 20
+    );
+    
+    // Don't generate responses for basic greetings or very short interactions
+    if (isBasicInteraction || inputLower.length < 10) {
+      return responses;
+    }
+    
     // Analyze the input to find relevant topics
     const relevantTopics = this.findRelevantTopics(teacherInput, subject);
     
-    // Generate 2-4 student responses from students who prefer this subject or are curious
+    // Only generate responses if the input contains actual teaching content
+    if (relevantTopics.length === 0 && inputLower.length < 30) {
+      return responses;
+    }
+    
+    // Generate 2-3 student responses from students who prefer this subject or are curious
     const interestedStudents = this.students.filter(student => 
-      student.subject_preference === subject || Math.random() > 0.6
+      student.subject_preference === subject || Math.random() > 0.7
     );
     
-    const numResponses = Math.min(Math.floor(Math.random() * 3) + 2, interestedStudents.length);
+    const numResponses = Math.min(Math.floor(Math.random() * 2) + 2, interestedStudents.length, 3);
     const selectedStudents = interestedStudents.slice(0, numResponses);
 
     for (let i = 0; i < selectedStudents.length; i++) {
@@ -221,96 +262,156 @@ export class StudentSimulator {
   ): string[] {
     const responses: string[] = [];
 
+    // Add subject-specific JEE-level questions based on relevant topics
+    if (relevantTopics.length > 0) {
+      const topic = relevantTopics[0];
+      
+      if (subject === 'physics') {
+        responses.push(
+          `Sir, in JEE questions on ${topic}, what are the most common mistakes students make?`,
+          `Can you explain the relationship between ${topic} and the other physics concepts we've studied?`,
+          `Sir, how do we approach problems where ${topic} is combined with other topics?`,
+          `What are the typical numerical ranges for ${topic} in JEE Advanced questions?`
+        );
+      } else if (subject === 'chemistry') {
+        responses.push(
+          `Sir, what are the exceptions to the rule in ${topic} that often appear in JEE?`,
+          `How does ${topic} connect to organic reactions we studied earlier?`,
+          `Sir, can you give us a mechanism-based question on ${topic}?`,
+          `What industrial applications of ${topic} are frequently asked in JEE?`
+        );
+      } else if (subject === 'mathematics') {
+        responses.push(
+          `Sir, what's the most elegant way to solve ${topic} problems in JEE?`,
+          `Can ${topic} be solved using multiple methods? Which is fastest?`,
+          `Sir, how do we identify when to use ${topic} in coordinate geometry problems?`,
+          `What are the common integration tricks for ${topic}?`
+        );
+      }
+    }
+
+    // Student-specific JEE-focused responses
     if (student.name === 'Priya') {
       responses.push(
-        "Sir, can you give us a practical example of this concept?",
-        "I understand the theory, but how do we apply this in JEE problems?",
-        "Could you explain this step by step? I want to make sure I understand completely.",
-        "This is interesting! How does this relate to what we learned in the previous chapter?",
-        "Sir, can you show us a numerical example to make this clearer?"
+        "Sir, can you show us the JEE-level application of this concept?",
+        "How does this appear in JEE Main vs JEE Advanced questions?",
+        "Sir, what's the step-by-step approach for solving such problems in exams?",
+        "Can you give us a previous year JEE question on this topic?"
       );
       
       if (subject === 'physics') {
         responses.push(
-          "How is this used in real-world engineering applications?",
-          "Can we derive this formula from first principles?",
-          "What are the units and dimensions here?"
+          "Sir, what are the dimensional analysis tricks for this concept?",
+          "How do we handle approximations in numerical problems?",
+          "What graph-based questions can come from this topic?"
         );
       }
     } else if (student.name === 'Arjun') {
       responses.push(
-        "Sir, I have a doubt. Why does this work this way?",
-        "Can you prove this mathematically?",
-        "What if we change this condition? Would the result be different?",
-        "I'm not convinced. Can you show us the derivation?",
-        "This seems similar to another concept. What's the difference?"
+        "Sir, I want to understand the deeper physics/mathematics behind this.",
+        "Can you prove why this formula works?",
+        "What are the assumptions we're making here?",
+        "Sir, what happens at the boundary conditions?"
       );
       
       if (subject === 'mathematics') {
         responses.push(
-          "What are the boundary conditions for this formula?",
-          "Can this theorem be generalized?",
-          "What's the intuitive reasoning behind this approach?"
+          "Can this be generalized to higher dimensions?",
+          "What's the geometric interpretation of this result?",
+          "Sir, how does this connect to advanced topics?"
         );
       }
     } else if (student.name === 'Sneha') {
       responses.push(
-        "Sir, how do we use this in our daily life?",
-        "This reminds me of something I saw at home! Is it related?",
-        "Can we do a simple experiment to see this?",
-        "My elder sister told me something similar. Are they the same?",
-        "This is so interesting! I want to tell my friends about this."
+        "Sir, where do we see this concept in real life?",
+        "Can we design an experiment to verify this?",
+        "How is this used in modern technology?",
+        "Sir, which industries use this principle the most?"
       );
+      
+      if (subject === 'chemistry') {
+        responses.push(
+          "What happens if we change the reaction conditions?",
+          "Sir, can you show us the molecular-level picture?",
+          "How does this reaction compare to similar ones?"
+        );
+      }
     } else if (student.name === 'Rohit') {
       responses.push(
-        "Sir, what's the fastest way to solve this type of problem?",
-        "Can you show us the standard method for such questions?",
-        "I've seen this in previous year papers. What's the trick?",
-        "How should I approach this in the exam?",
-        "Are there any shortcuts for this calculation?"
+        "Sir, what's the fastest method to solve this in JEE?",
+        "Are there any shortcut formulas for this topic?",
+        "How do we recognize this pattern in complex problems?",
+        "Sir, what's the time management strategy for such questions?"
       );
+      
+      if (subject === 'physics') {
+        responses.push(
+          "Can we use energy methods instead of force analysis?",
+          "Sir, what's the dimensional reasoning approach here?",
+          "Which approximations save time in calculations?"
+        );
+      }
     } else if (student.name === 'Ananya') {
       responses.push(
-        "Sir, can you draw a diagram to explain this?",
-        "I'm trying to visualize this concept. Can you help?",
-        "What would this look like if we could see it?",
-        "Can we make a flowchart for this process?",
-        "I learn better with pictures. Do you have any visual aids?"
+        "Sir, can you draw the physical situation?",
+        "How do we visualize this mathematically?",
+        "Can you show us the graphical representation?",
+        "Sir, what does this look like in 3D space?"
       );
+      
+      if (subject === 'mathematics') {
+        responses.push(
+          "Can we plot this function to understand better?",
+          "Sir, what's the geometric meaning of this equation?",
+          "How does this transformation affect the graph?"
+        );
+      }
     } else if (student.name === 'Karthik') {
       responses.push(
-        "Sir, is this type of question asked frequently in JEE?",
-        "How many marks does this topic carry in the exam?",
-        "Can you give us a JEE level problem on this?",
-        "What's the difficulty level of this concept for JEE Advanced?",
-        "Sir, I want to master this topic completely!"
+        "Sir, how frequently does this topic appear in JEE Advanced?",
+        "What's the difficulty level of questions from this chapter?",
+        "Can you give us the toughest possible question on this?",
+        "Sir, what makes a good student excel in this topic?"
       );
+      
+      if (subject === 'chemistry') {
+        responses.push(
+          "Which coaching centers emphasize this topic the most?",
+          "Sir, what are the common misconceptions here?",
+          "How do top rankers approach such problems?"
+        );
+      }
     } else if (student.name === 'Divya') {
       responses.push(
-        "Sir, can you explain this more slowly? I want to understand each step.",
-        "Let me repeat what you said to make sure I understood correctly...",
-        "Sir, what should be our approach when we encounter such problems?",
-        "Can you break this down into smaller parts?",
-        "I think I understand, but can you give one more example?"
+        "Sir, can you break this into smaller logical steps?",
+        "Let me make sure I understand each part correctly.",
+        "What should be our systematic approach to such problems?",
+        "Sir, can you give us a checklist for solving these questions?"
       );
+      
+      if (subject === 'mathematics') {
+        responses.push(
+          "What are the prerequisites for understanding this?",
+          "Sir, how do we avoid calculation errors here?",
+          "Can you explain the logic behind each step?"
+        );
+      }
     } else if (student.name === 'Varun') {
       responses.push(
-        "Oh, I know this! The answer is... wait, let me think again.",
-        "Sir, I solved a similar problem yesterday, but got a different answer.",
-        "This seems easy! But why am I getting confused?",
-        "I thought I understood this, but now I'm not sure.",
-        "Can you check if my approach is correct?"
+        "Sir, I think I know this but I'm getting confused with the details.",
+        "Wait, this looks similar to what we did last week, right?",
+        "I remember solving something like this, but my method was different.",
+        "Sir, can you check if this alternative approach works?",
+        "This concept seems straightforward, but the problems are tricky!"
       );
-    }
-
-    // Add topic-specific responses if relevant topics are found
-    if (relevantTopics.length > 0) {
-      const topic = relevantTopics[0];
-      responses.push(
-        `Sir, how does ${topic} connect to what you just explained?`,
-        `I remember ${topic} from last class. Is this related?`,
-        `Can you clarify the difference between ${topic} and this concept?`
-      );
+      
+      if (subject === 'physics') {
+        responses.push(
+          "Sir, I used conservation of energy, but got a different answer.",
+          "Can we solve this using Newton's laws instead?",
+          "I think there's a sign error in my calculation."
+        );
+      }
     }
 
     return responses;
