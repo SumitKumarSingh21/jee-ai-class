@@ -51,16 +51,6 @@ export const TeachingInterface: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const studentSimulator = useRef(new StudentSimulator());
 
-  // Initialize speech recognition
-  useEffect(() => {
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-      const rec = new SpeechRecognition();
-      
-      rec.continuous = true;
-      rec.interimResults = true;
-      rec.lang = 'en-US';
-  
   // Initialize active students
   useEffect(() => {
     const students: Student[] = [
@@ -75,6 +65,16 @@ export const TeachingInterface: React.FC = () => {
     ];
     setActiveStudents(students);
   }, []);
+
+  // Initialize speech recognition
+  useEffect(() => {
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      const rec = new SpeechRecognition();
+      
+      rec.continuous = true;
+      rec.interimResults = true;
+      rec.lang = 'en-US';
       rec.onresult = (event) => {
         let interimTranscript = '';
         let finalTranscript = '';
