@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { BookOpen, Clock, Target, Users, ArrowRight, Play } from 'lucide-react';
+import { DurationSelector } from '@/components/DurationSelector';
+import { UserProgress } from '@/components/UserProgress';
 
 const subjectData = {
   physics: {
@@ -144,6 +146,8 @@ const subjectData = {
 const LessonPlan: React.FC = () => {
   const [selectedSubject, setSelectedSubject] = useState<string>('physics');
   const [selectedChapter, setSelectedChapter] = useState<string>('');
+  const [selectedSubChapter, setSelectedSubChapter] = useState<string>('');
+  const [selectedDuration, setSelectedDuration] = useState<number>(30);
   const navigate = useNavigate();
 
   const currentSubject = subjectData[selectedSubject as keyof typeof subjectData];
@@ -168,11 +172,18 @@ const LessonPlan: React.FC = () => {
       return;
     }
     
+    if (!selectedSubChapter) {
+      alert('Please select a specific topic before starting to teach');
+      return;
+    }
+    
     // Navigate to teaching interface with selected subject and chapter
     navigate('/teaching', { 
       state: { 
         selectedSubject, 
         selectedChapter,
+        selectedSubChapter,
+        selectedDuration,
         subjectName: currentSubject.name,
         chapterName: currentChapter.name
       } 
@@ -181,7 +192,7 @@ const LessonPlan: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-subtle p-4">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8 text-center">
           <div className="flex items-center justify-center gap-3 mb-4">
@@ -195,119 +206,168 @@ const LessonPlan: React.FC = () => {
           </div>
         </div>
 
-        {/* Subject and Chapter Selection */}
-        <div className="grid gap-6 md:grid-cols-2">
-          {/* Subject Selection Card */}
-          <Card className="p-6 shadow-medium">
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 mb-4">
-                <Target className="h-5 w-5 text-primary" />
-                <h3 className="text-xl font-semibold text-foreground">Select Subject</h3>
-              </div>
+        {/* Main Content Grid */}
+        <div className="grid gap-6 lg:grid-cols-3">
+          {/* User Progress */}
+          <div className="lg:col-span-1">
+            <UserProgress />
+          </div>
 
-              <div className="space-y-3">
-                {Object.entries(subjectData).map(([key, subject]) => (
-                  <div
-                    key={key}
-                    className={`p-4 rounded-lg border-2 cursor-pointer transition-all hover:shadow-md ${
-                      selectedSubject === key 
-                        ? 'border-primary bg-primary/5' 
-                        : 'border-border bg-card hover:border-primary/50'
-                    }`}
-                    onClick={() => {
-                      setSelectedSubject(key);
-                      setSelectedChapter(''); // Reset chapter when subject changes
-                    }}
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">{subject.icon}</span>
-                      <div>
-                        <h4 className="font-semibold text-foreground">{subject.name}</h4>
-                        <p className="text-sm text-muted-foreground">
-                          {Object.keys(subject.chapters).length} chapters available
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </Card>
+          {/* Subject and Chapter Selection */}
+          <div className="lg:col-span-2 grid gap-6 md:grid-cols-2">
+            {/* Subject Selection Card */}
+            <Card className="p-6 shadow-medium">
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <Target className="h-5 w-5 text-primary" />
+                  <h3 className="text-xl font-semibold text-foreground">Select Subject</h3>
+                </div>
 
-          {/* Chapter Selection Card */}
-          <Card className="p-6 shadow-medium">
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 mb-4">
-                <Clock className="h-5 w-5 text-primary" />
-                <h3 className="text-xl font-semibold text-foreground">Select Chapter</h3>
-              </div>
-
-              {currentSubject ? (
-                <div className="space-y-2 max-h-96 overflow-y-auto">
-                  {Object.entries(currentSubject.chapters).map(([key, chapter]) => (
+                <div className="space-y-3">
+                  {Object.entries(subjectData).map(([key, subject]) => (
                     <div
                       key={key}
-                      className={`p-3 rounded-lg border cursor-pointer transition-all hover:shadow-sm ${
-                        selectedChapter === key 
+                      className={`p-4 rounded-lg border-2 cursor-pointer transition-all hover:shadow-md ${
+                        selectedSubject === key 
                           ? 'border-primary bg-primary/5' 
                           : 'border-border bg-card hover:border-primary/50'
                       }`}
-                      onClick={() => setSelectedChapter(key)}
+                      onClick={() => {
+                        setSelectedSubject(key);
+                        setSelectedChapter(''); // Reset chapter when subject changes
+                        setSelectedSubChapter(''); // Reset sub-chapter when subject changes
+                      }}
                     >
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium text-foreground">{chapter.name}</span>
-                        <div className="flex gap-1">
-                          <Badge variant="outline" className={getDifficultyColor(chapter.difficulty)}>
-                            {chapter.difficulty}
-                          </Badge>
-                          <Badge variant="outline" className="bg-blue-100 text-blue-800">
-                            {chapter.examWeight}
-                          </Badge>
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">{subject.icon}</span>
+                        <div>
+                          <h4 className="font-semibold text-foreground">{subject.name}</h4>
+                          <p className="text-sm text-muted-foreground">
+                            {Object.keys(subject.chapters).length} chapters available
+                          </p>
                         </div>
                       </div>
                     </div>
                   ))}
                 </div>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                  <p>Please select a subject first</p>
+              </div>
+            </Card>
+
+            {/* Chapter Selection Card */}
+            <Card className="p-6 shadow-medium">
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <Clock className="h-5 w-5 text-primary" />
+                  <h3 className="text-xl font-semibold text-foreground">Select Chapter</h3>
                 </div>
-              )}
-            </div>
-          </Card>
+
+                {currentSubject ? (
+                  <div className="space-y-2 max-h-96 overflow-y-auto">
+                    {Object.entries(currentSubject.chapters).map(([key, chapter]) => (
+                      <div
+                        key={key}
+                        className={`p-3 rounded-lg border cursor-pointer transition-all hover:shadow-sm ${
+                          selectedChapter === key 
+                            ? 'border-primary bg-primary/5' 
+                            : 'border-border bg-card hover:border-primary/50'
+                        }`}
+                        onClick={() => {
+                          setSelectedChapter(key);
+                          setSelectedSubChapter(''); // Reset sub-chapter when chapter changes
+                        }}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium text-foreground">{chapter.name}</span>
+                          <div className="flex gap-1">
+                            <Badge variant="outline" className={getDifficultyColor(chapter.difficulty)}>
+                              {chapter.difficulty}
+                            </Badge>
+                            <Badge variant="outline" className="bg-blue-100 text-blue-800">
+                              {chapter.examWeight}
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                    <p>Please select a subject first</p>
+                  </div>
+                )}
+              </div>
+            </Card>
+          </div>
         </div>
 
-        {/* Chapter Details */}
-        {currentChapter && (
+        {/* Duration and Sub-chapter Selection */}
+        {selectedChapter && (
+          <div className="grid gap-6 md:grid-cols-2 mt-6">
+            <DurationSelector
+              selectedDuration={selectedDuration}
+              onDurationChange={setSelectedDuration}
+            />
+            
+            {/* Sub-chapter Selection */}
+            <Card className="p-6 shadow-medium">
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <Target className="h-5 w-5 text-primary" />
+                  <h3 className="text-xl font-semibold text-foreground">Select Topic</h3>
+                </div>
+
+                <div className="space-y-2 max-h-80 overflow-y-auto">
+                  {currentChapter.topics.map((topic: string, index: number) => (
+                    <div
+                      key={index}
+                      className={`p-3 rounded-lg border cursor-pointer transition-all hover:shadow-sm ${
+                        selectedSubChapter === topic 
+                          ? 'border-primary bg-primary/5' 
+                          : 'border-border bg-card hover:border-primary/50'
+                      }`}
+                      onClick={() => setSelectedSubChapter(topic)}
+                    >
+                      <div className="flex items-start gap-3">
+                        <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded font-medium">
+                          {index + 1}
+                        </span>
+                        <span className="text-sm text-foreground flex-1">{topic}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </Card>
+          </div>
+        )}
+
+        {/* Chapter Details - Summary View */}
+        {currentChapter && selectedSubChapter && (
           <Card className="mt-6 p-6 shadow-medium">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h4 className="text-xl font-semibold text-foreground">
-                  {currentSubject.name} - {currentChapter.name}
+                  Ready to Teach: {selectedSubChapter}
                 </h4>
                 <div className="flex gap-2">
                   <Badge variant="outline" className={getDifficultyColor(currentChapter.difficulty)}>
                     <Target className="h-3 w-3 mr-1" />
                     {currentChapter.difficulty}
                   </Badge>
-                  <Badge variant="outline" className="bg-blue-100 text-blue-800">
+                  <Badge variant="outline" className="bg-green-100 text-green-800">
                     <Clock className="h-3 w-3 mr-1" />
-                    {currentChapter.examWeight} Exam Weight
+                    {selectedDuration} min session
                   </Badge>
                 </div>
               </div>
               
-              <div>
-                <p className="text-sm font-medium text-muted-foreground mb-3">Topics to cover in this chapter:</p>
-                <div className="grid gap-2 md:grid-cols-2">
-                  {currentChapter.topics.map((topic: string, index: number) => (
-                    <div key={index} className="flex items-start gap-2 p-2 bg-muted/50 rounded">
-                      <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0" />
-                      <span className="text-sm text-foreground">{topic}</span>
-                    </div>
-                  ))}
-                </div>
+              <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
+                <p className="text-sm font-medium text-primary mb-2">Selected Topic:</p>
+                <p className="text-foreground">{selectedSubChapter}</p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  From {currentSubject.name} → {currentChapter.name}
+                </p>
               </div>
             </div>
           </Card>
@@ -317,18 +377,18 @@ const LessonPlan: React.FC = () => {
         <div className="mt-8 text-center">
           <Button
             onClick={handleStartTeaching}
-            disabled={!selectedChapter}
+            disabled={!selectedChapter || !selectedSubChapter}
             size="lg"
             className="bg-gradient-primary hover:opacity-90 text-primary-foreground px-8 py-4 text-lg font-semibold rounded-xl shadow-elegant hover:shadow-glow transition-all"
           >
             <Play className="h-6 w-6 mr-3" />
-            Start Teaching Session
+            Start Teaching Session ({selectedDuration} min)
             <ArrowRight className="h-6 w-6 ml-3" />
           </Button>
           
-          {!selectedChapter && (
+          {(!selectedChapter || !selectedSubChapter) && (
             <p className="text-sm text-muted-foreground mt-2">
-              Please select both subject and chapter to begin teaching
+              Please select subject, chapter, and specific topic to begin teaching
             </p>
           )}
         </div>

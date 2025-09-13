@@ -42,6 +42,7 @@ export const TeachingInterface: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [selectedSubject, setSelectedSubject] = useState<string>('physics');
   const [selectedChapter, setSelectedChapter] = useState<string>('mechanics');
+  const [selectedSubChapter, setSelectedSubChapter] = useState<string>('');
   const [recognition, setRecognition] = useState<SpeechRecognition | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [activeStudents, setActiveStudents] = useState<Student[]>([]);
@@ -331,8 +332,10 @@ export const TeachingInterface: React.FC = () => {
             <ChapterSelector
               selectedSubject={selectedSubject}
               selectedChapter={selectedChapter}
+              selectedSubChapter={selectedSubChapter}
               onSubjectChange={setSelectedSubject}
               onChapterChange={setSelectedChapter}
+              onSubChapterChange={setSelectedSubChapter}
             />
           </div>
 

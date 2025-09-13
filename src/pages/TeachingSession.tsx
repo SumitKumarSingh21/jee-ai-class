@@ -7,6 +7,8 @@ import { useToast } from '@/hooks/use-toast';
 import { ChatMessage } from '@/components/ChatMessage';
 import { StudentSimulator } from '@/utils/studentSimulator';
 import { Message } from '@/components/TeachingInterface';
+import { TeachingTimer } from '@/components/TeachingTimer';
+import { RewardsModal } from '@/components/RewardsModal';
 
 interface Student {
   name: string;
@@ -21,7 +23,7 @@ const TeachingSession: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  const { selectedSubject, selectedChapter, subjectName, chapterName } = location.state || {};
+  const { selectedSubject, selectedChapter, selectedSubChapter, selectedDuration, subjectName, chapterName } = location.state || {};
   
   const [isRecording, setIsRecording] = useState(false);
   const [isCameraOn, setIsCameraOn] = useState(true);
@@ -32,6 +34,9 @@ const TeachingSession: React.FC = () => {
   const [activeStudents, setActiveStudents] = useState<Student[]>([]);
   const [currentSpeaker, setCurrentSpeaker] = useState<string>('');
   const [stream, setStream] = useState<MediaStream | null>(null);
+  const [isTeachingActive, setIsTeachingActive] = useState(false);
+  const [showRewardsModal, setShowRewardsModal] = useState(false);
+  const [sessionCompleted, setSessionCompleted] = useState(false);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -368,12 +373,12 @@ const TeachingSession: React.FC = () => {
     }
   };
 
-  if (!selectedSubject || !selectedChapter) {
+  if (!selectedSubject || !selectedChapter || !selectedSubChapter) {
     return (
       <div className="min-h-screen bg-gradient-subtle flex items-center justify-center">
         <Card className="p-8 text-center">
-          <h2 className="text-2xl font-bold mb-4">No Lesson Selected</h2>
-          <p className="text-muted-foreground mb-6">Please select a subject and chapter to start teaching.</p>
+          <h2 className="text-2xl font-bold mb-4">No Topic Selected</h2>
+          <p className="text-muted-foreground mb-6">Please select a subject, chapter, and specific topic to start teaching.</p>
           <Button onClick={() => navigate('/lesson-plan')}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Lesson Plan

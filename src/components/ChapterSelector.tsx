@@ -7,8 +7,10 @@ import { BookOpen, Clock, Target } from 'lucide-react';
 interface ChapterSelectorProps {
   selectedSubject: string;
   selectedChapter: string;
+  selectedSubChapter: string;
   onSubjectChange: (subject: string) => void;
   onChapterChange: (chapter: string) => void;
+  onSubChapterChange: (subChapter: string) => void;
 }
 
 const subjectData = {
@@ -113,8 +115,10 @@ const subjectData = {
 export const ChapterSelector: React.FC<ChapterSelectorProps> = ({
   selectedSubject,
   selectedChapter,
+  selectedSubChapter,
   onSubjectChange,
-  onChapterChange
+  onChapterChange,
+  onSubChapterChange
 }) => {
   const currentSubject = subjectData[selectedSubject as keyof typeof subjectData];
   const currentChapter = currentSubject?.chapters[selectedChapter as keyof typeof currentSubject.chapters] as any;
@@ -182,6 +186,30 @@ export const ChapterSelector: React.FC<ChapterSelectorProps> = ({
           </Select>
         </div>
 
+        {/* Sub-Chapter Selection */}
+        {currentChapter && (
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">Topic/Sub-Chapter:</label>
+            <Select value={selectedSubChapter} onValueChange={onSubChapterChange}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select a specific topic" />
+              </SelectTrigger>
+              <SelectContent>
+                {currentChapter.topics.map((topic, index) => (
+                  <SelectItem key={index} value={topic}>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
+                        {index + 1}
+                      </span>
+                      <span>{topic}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
         {/* Chapter Details */}
         {currentChapter && (
           <div className="space-y-3 pt-4 border-t border-border">
@@ -199,16 +227,12 @@ export const ChapterSelector: React.FC<ChapterSelectorProps> = ({
               </div>
             </div>
             
-            <div>
-              <p className="text-sm font-medium text-muted-foreground mb-2">Topics to cover:</p>
-              <div className="flex flex-wrap gap-1">
-                {currentChapter.topics.map((topic, index) => (
-                  <Badge key={index} variant="secondary" className="text-xs">
-                    {topic}
-                  </Badge>
-                ))}
+            {selectedSubChapter && (
+              <div className="p-3 bg-primary/5 rounded-lg border border-primary/20">
+                <p className="text-sm font-medium text-primary mb-1">Selected Topic:</p>
+                <p className="text-sm text-foreground">{selectedSubChapter}</p>
               </div>
-            </div>
+            )}
           </div>
         )}
       </div>
