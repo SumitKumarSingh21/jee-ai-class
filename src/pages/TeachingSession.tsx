@@ -37,6 +37,84 @@ const TeachingSession: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const studentSimulator = useRef(new StudentSimulator());
 
+  // Real-time processing helpers
+  const pendingChunkRef = useRef<string>('');
+  const silenceTimerRef = useRef<number | null>(null);
+  const isProcessingRef = useRef(false);
+  const isRecordingRef = useRef(false);
+
+  // Keep refs in sync with state
+  useEffect(() => { isProcessingRef.current = isProcessing; }, [isProcessing]);
+  useEffect(() => { isRecordingRef.current = isRecording; }, [isRecording]);
+
+  const processTeacherInput = useCallback(async (transcript: string) => {
+    setIsProcessing(true);
+
+    // Add teacher message
+    const teacherMessage: Message = {
+      id: `teacher-${Date.now()}`,
+      type: 'teacher',
+      content: transcript,
+      timestamp: new Date(),
+    };
+
+    setMessages((prev) => [...prev, teacherMessage]);
+
+    try {
+      // Get AI student responses
+      const studentResponses = await studentSimulator.current.generateResponses(
+        transcript,
+        selectedSubject
+      );
+
+      // Add student messages with delays for natural conversation flow
+      for (let i = 0; i < studentResponses.length; i++) {
+        setTimeout(() => {
+          const response = studentResponses[i];
+          const studentMessage: Message = {
+            id: `student-${Date.now()}-${i}`,
+            type: 'student',
+            content: response.content,
+            timestamp: new Date(),
+            studentName: response.studentName,
+            avatar: response.avatar,
+            voiceType: response.voiceType,
+          };
+
+          setMessages((prev) => [...prev, studentMessage]);
+
+          // Update student activity
+          setActiveStudents((prev) =>
+            prev.map((student) =>
+              student.name === response.studentName
+                ? { ...student, lastSpoke: new Date() }
+                : student
+            )
+          );
+
+          // Set current speaker
+          setCurrentSpeaker(response.studentName);
+
+          // Text-to-speech for student response
+          speakText(response.content, response.studentName, response.voiceType);
+
+          // Clear current speaker after speaking
+          setTimeout(() => setCurrentSpeaker(''), 3000);
+        }, (i + 1) * 2000);
+      }
+    } catch (error) {
+      console.error('Error processing teacher input:', error);
+      toast({
+        title: 'Processing Error',
+        description: 'There was an issue processing your input. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsProcessing(false);
+      setCurrentTranscript('');
+    }
+  }, [selectedSubject, toast]);
+
   // Initialize active students
   useEffect(() => {
     const students: Student[] = [
@@ -63,49 +141,90 @@ const TeachingSession: React.FC = () => {
     return () => stopVideo();
   }, [isCameraOn]);
 
-  // Initialize speech recognition
+  // Initialize speech recognition with real-time chunking
   useEffect(() => {
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
       const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
       const rec = new SpeechRecognition();
-      
+
       rec.continuous = true;
       rec.interimResults = true;
       rec.lang = 'en-US';
-      
-      rec.onresult = (event) => {
+
+      const scheduleProcess = (force: boolean) => {
+        if (silenceTimerRef.current) {
+          window.clearTimeout(silenceTimerRef.current);
+          silenceTimerRef.current = null;
+        }
+        // If not recording, skip scheduling
+        if (!isRecordingRef.current) return;
+        // On short pause, process what we have
+        silenceTimerRef.current = window.setTimeout(() => {
+          const chunk = pendingChunkRef.current.trim();
+          if (!chunk) return;
+          pendingChunkRef.current = '';
+          // Process remaining chunk
+          processTeacherInput(chunk);
+        }, force ? 0 : 1200); // 1.2s of silence means "end of thought"
+      };
+
+      rec.onresult = (event: SpeechRecognitionEvent) => {
         let interimTranscript = '';
-        let finalTranscript = '';
-        
+
         for (let i = event.resultIndex; i < event.results.length; i++) {
           const transcript = event.results[i][0].transcript;
           if (event.results[i].isFinal) {
-            finalTranscript += transcript;
+            // Accumulate final phrases into pending chunk
+            const trimmed = transcript.trim();
+            pendingChunkRef.current = [pendingChunkRef.current, trimmed]
+              .filter(Boolean)
+              .join(' ')
+              .trim();
+
+            // If sentence-like end or long chunk, process immediately; otherwise wait for silence
+            if (/[.!?)]$/.test(trimmed) || pendingChunkRef.current.length > 100) {
+              scheduleProcess(true);
+            } else {
+              scheduleProcess(false);
+            }
           } else {
             interimTranscript += transcript;
           }
         }
-        
-        setCurrentTranscript(finalTranscript + interimTranscript);
+
+        const combined = [pendingChunkRef.current, interimTranscript].filter(Boolean).join(' ').trim();
+        setCurrentTranscript(combined);
       };
-      
-      rec.onerror = (event) => {
+
+      rec.onerror = (event: any) => {
         console.error('Speech recognition error:', event.error);
         toast({
-          title: "Speech Recognition Error",
-          description: "There was an issue with speech recognition. Please try again.",
-          variant: "destructive"
+          title: 'Speech Recognition Error',
+          description: 'There was an issue with speech recognition. Please try again.',
+          variant: 'destructive',
         });
         setIsRecording(false);
       };
-      
+
       rec.onend = () => {
         setIsRecording(false);
+        // Clear any pending timers when recognition ends
+        if (silenceTimerRef.current) {
+          window.clearTimeout(silenceTimerRef.current);
+          silenceTimerRef.current = null;
+        }
       };
-      
+
       setRecognition(rec);
     }
-  }, [toast]);
+
+    return () => {
+      if (silenceTimerRef.current) {
+        window.clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = null;
+      }
+    };
+  }, [toast, processTeacherInput]);
 
   // Auto-scroll to latest message
   useEffect(() => {
@@ -162,36 +281,44 @@ const TeachingSession: React.FC = () => {
     if (recognition) {
       recognition.stop();
       setIsRecording(false);
-      
-      // Only process input if there's meaningful content
-      if (currentTranscript.trim() && currentTranscript.trim().length > 5) {
-        await processTeacherInput(currentTranscript.trim());
-      } else {
-        setCurrentTranscript('');
-      }
-    }
-  }, [recognition, currentTranscript]);
 
-  const processTeacherInput = async (transcript: string) => {
+      // Clear any pending timer and flush remaining chunk
+      if (silenceTimerRef.current) {
+        window.clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = null;
+      }
+
+      const leftover = pendingChunkRef.current.trim();
+      pendingChunkRef.current = '';
+
+      if (leftover && leftover.length > 10) {
+        await processTeacherInput(leftover);
+      }
+
+      setCurrentTranscript('');
+    }
+  }, [recognition, processTeacherInput]);
+
+  const processTeacherInput = useCallback(async (transcript: string) => {
     setIsProcessing(true);
-    
+
     // Add teacher message
     const teacherMessage: Message = {
       id: `teacher-${Date.now()}`,
       type: 'teacher',
       content: transcript,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
-    
-    setMessages(prev => [...prev, teacherMessage]);
-    
+
+    setMessages((prev) => [...prev, teacherMessage]);
+
     try {
       // Get AI student responses
       const studentResponses = await studentSimulator.current.generateResponses(
-        transcript, 
+        transcript,
         selectedSubject
       );
-      
+
       // Add student messages with delays for natural conversation flow
       for (let i = 0; i < studentResponses.length; i++) {
         setTimeout(() => {
@@ -203,24 +330,26 @@ const TeachingSession: React.FC = () => {
             timestamp: new Date(),
             studentName: response.studentName,
             avatar: response.avatar,
-            voiceType: response.voiceType
+            voiceType: response.voiceType,
           };
-          
-          setMessages(prev => [...prev, studentMessage]);
-          
+
+          setMessages((prev) => [...prev, studentMessage]);
+
           // Update student activity
-          setActiveStudents(prev => prev.map(student => 
-            student.name === response.studentName 
-              ? { ...student, lastSpoke: new Date() }
-              : student
-          ));
-          
+          setActiveStudents((prev) =>
+            prev.map((student) =>
+              student.name === response.studentName
+                ? { ...student, lastSpoke: new Date() }
+                : student
+            )
+          );
+
           // Set current speaker
           setCurrentSpeaker(response.studentName);
-          
+
           // Text-to-speech for student response
           speakText(response.content, response.studentName, response.voiceType);
-          
+
           // Clear current speaker after speaking
           setTimeout(() => setCurrentSpeaker(''), 3000);
         }, (i + 1) * 2000);
@@ -228,15 +357,15 @@ const TeachingSession: React.FC = () => {
     } catch (error) {
       console.error('Error processing teacher input:', error);
       toast({
-        title: "Processing Error",
-        description: "There was an issue processing your input. Please try again.",
-        variant: "destructive"
+        title: 'Processing Error',
+        description: 'There was an issue processing your input. Please try again.',
+        variant: 'destructive',
       });
     } finally {
       setIsProcessing(false);
       setCurrentTranscript('');
     }
-  };
+  }, [selectedSubject, toast]);
 
   const speakText = (text: string, studentName: string, voiceType: string) => {
     if ('speechSynthesis' in window) {
