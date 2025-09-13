@@ -175,23 +175,43 @@ export class StudentSimulator {
   public async generateResponses(teacherInput: string, subject: string): Promise<StudentResponse[]> {
     const responses: StudentResponse[] = [];
     
-    // Filter out simple greetings and basic acknowledgments to avoid unnecessary questions
+    // Filter out simple greetings, casual talk, and non-educational content
     const inputLower = teacherInput.toLowerCase().trim();
-    const basicGreetings = ['hello', 'hi', 'good morning', 'good afternoon', 'good evening', 'welcome', 'let me', 'las', 'okay', 'ok', 'yes', 'no', 'right', 'correct'];
-    const isBasicInteraction = basicGreetings.some(greeting => 
-      inputLower === greeting || inputLower.includes(greeting) && inputLower.length < 20
-    );
     
-    // Don't generate responses for basic greetings or very short interactions
-    if (isBasicInteraction || inputLower.length < 10) {
+    // Extended list of non-educational interactions
+    const casualPhrases = [
+      'hello', 'hi', 'good morning', 'good afternoon', 'good evening', 'welcome', 
+      'let me', 'las', 'okay', 'ok', 'yes', 'no', 'right', 'correct', 'uhm', 'um', 
+      'uh', 'well', 'so', 'now', 'today', 'alright', 'let\'s', 'shall we', 'can you hear me',
+      'is everyone here', 'are you there', 'testing', 'mic check', 'audio check',
+      'how are you', 'how is everyone', 'good to see you', 'nice to meet you'
+    ];
+    
+    // Check if input is purely casual/administrative
+    const isCasualTalk = casualPhrases.some(phrase => {
+      if (inputLower === phrase) return true;
+      if (inputLower.includes(phrase) && inputLower.length < 25) return true;
+      return false;
+    });
+    
+    // Don't respond to casual talk, very short inputs, or administrative comments
+    if (isCasualTalk || inputLower.length < 15) {
+      return responses;
+    }
+    
+    // Check if input contains educational content
+    const hasEducationalContent = this.containsEducationalContent(inputLower, subject);
+    
+    // Only respond if there's genuine educational content
+    if (!hasEducationalContent && inputLower.length < 40) {
       return responses;
     }
     
     // Analyze the input to find relevant topics
     const relevantTopics = this.findRelevantTopics(teacherInput, subject);
     
-    // Only generate responses if the input contains actual teaching content
-    if (relevantTopics.length === 0 && inputLower.length < 30) {
+    // Generate responses only for substantial educational content
+    if (relevantTopics.length === 0 && !hasEducationalContent) {
       return responses;
     }
     
@@ -238,6 +258,61 @@ export class StudentSimulator {
     });
 
     return relevantTopics;
+  }
+
+  private containsEducationalContent(input: string, subject: string): boolean {
+    // Educational keywords that indicate teaching content
+    const educationalKeywords = [
+      'formula', 'equation', 'theorem', 'principle', 'law', 'concept', 'theory',
+      'problem', 'solution', 'example', 'calculate', 'derive', 'prove', 'explain',
+      'understand', 'learn', 'study', 'analyze', 'solve', 'apply', 'demonstrate',
+      'discuss', 'examine', 'evaluate', 'compare', 'contrast', 'relationship',
+      'property', 'characteristic', 'behavior', 'phenomenon', 'process', 'method',
+      'technique', 'approach', 'strategy', 'definition', 'meaning', 'significance',
+      'importance', 'application', 'use', 'practical', 'real world', 'example',
+      'illustration', 'diagram', 'graph', 'chart', 'table', 'data', 'result',
+      'conclusion', 'hypothesis', 'experiment', 'observation', 'measurement'
+    ];
+
+    // Subject-specific educational terms
+    const subjectKeywords = {
+      physics: [
+        'force', 'energy', 'motion', 'velocity', 'acceleration', 'momentum', 'pressure',
+        'temperature', 'heat', 'electric', 'magnetic', 'wave', 'frequency', 'amplitude',
+        'circuit', 'current', 'voltage', 'resistance', 'gravity', 'mass', 'weight',
+        'power', 'work', 'friction', 'collision', 'oscillation', 'radiation'
+      ],
+      chemistry: [
+        'atom', 'molecule', 'compound', 'element', 'reaction', 'bond', 'electron',
+        'proton', 'neutron', 'ionic', 'covalent', 'acid', 'base', 'salt', 'ph',
+        'oxidation', 'reduction', 'catalyst', 'equilibrium', 'concentration',
+        'molarity', 'stoichiometry', 'periodic', 'organic', 'inorganic'
+      ],
+      mathematics: [
+        'function', 'derivative', 'integral', 'limit', 'matrix', 'vector', 'equation',
+        'inequality', 'probability', 'statistics', 'geometry', 'algebra', 'calculus',
+        'trigonometry', 'logarithm', 'exponential', 'polynomial', 'coefficient',
+        'variable', 'constant', 'domain', 'range', 'graph', 'coordinate'
+      ]
+    };
+
+    // Check for general educational keywords
+    const hasEducationalKeyword = educationalKeywords.some(keyword => 
+      input.includes(keyword)
+    );
+
+    // Check for subject-specific keywords
+    const subjectTerms = subjectKeywords[subject as keyof typeof subjectKeywords] || [];
+    const hasSubjectKeyword = subjectTerms.some(keyword => 
+      input.includes(keyword)
+    );
+
+    // Check if input has question words that suggest teaching context
+    const questionWords = ['what', 'why', 'how', 'when', 'where', 'which', 'who'];
+    const hasQuestionContext = questionWords.some(word => input.includes(word)) && 
+                               (hasEducationalKeyword || hasSubjectKeyword);
+
+    return hasEducationalKeyword || hasSubjectKeyword || hasQuestionContext;
   }
 
   private async generateStudentResponse(

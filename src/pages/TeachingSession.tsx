@@ -163,8 +163,11 @@ const TeachingSession: React.FC = () => {
       recognition.stop();
       setIsRecording(false);
       
-      if (currentTranscript.trim()) {
+      // Only process input if there's meaningful content
+      if (currentTranscript.trim() && currentTranscript.trim().length > 5) {
         await processTeacherInput(currentTranscript.trim());
+      } else {
+        setCurrentTranscript('');
       }
     }
   }, [recognition, currentTranscript]);
